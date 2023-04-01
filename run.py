@@ -5,6 +5,7 @@ from geopy.geocoders import Nominatim
 from datetime import date
 import pandas as pd
 import requests
+import folium
 
 def main(url):
     soup = connect(url)
@@ -12,7 +13,6 @@ def main(url):
     num_pages = 1 #for test purpose, only one page gathered
 
     for page in range(1,num_pages+1):
-        print(page)
         parse(connect(url.replace("page=1",f"page={page}")))
 
 def connect(url):
@@ -64,4 +64,12 @@ geolocator = Nominatim(user_agent="my_request")
 
 main("https://www.olx.pl/nieruchomosci/dzialki/sprzedaz/gdansk/?page=1&search%5Bdist%5D=50&search%5Bfilter_enum_type%5D%5B0%5D=dzialki-budowlane&search%5Bprivate_business%5D=private")
 
-print(df)
+map = folium.Map(location=[54.36, 18.63],tiles="Stamen Toner",zoom_start=9)
+
+fg = folium.FeatureGroup(name='Działki')
+
+for index, coordinates in df.iterrows():
+    fg.add_child(folium.Circle(location=[coordinates["Lat"],coordinates['Lon']],popup=coordinates['City'],radius=float(coordinates['Mprice'])))
+
+map.add_child(fg)
+map.save('analysis.html')
